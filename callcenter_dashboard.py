@@ -107,8 +107,12 @@ with st.sidebar:
         st.warning("⚠️ queue_engine.py not found\nPlace it in same folder.")
 
 # ── LOAD DATA ─────────────────────────────────────────────────
-_data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                          "data", "callcenter_queue_data.csv")
+import pathlib
+_root = pathlib.Path(__file__).parent
+# Try both locations:
+_data_path = _root / "data" / "bank_queue_data.csv"
+if not _data_path.exists():
+    _data_path = _root.parent / "data" / "callcenter_queue_data.csv"
 
 @st.cache_data
 def load_data(file_bytes=None):
