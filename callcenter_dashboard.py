@@ -110,7 +110,7 @@ with st.sidebar:
 import pathlib
 _root = pathlib.Path(__file__).parent
 # Try both locations:
-_data_path = _root / "data" / "bank_queue_data.csv"
+_data_path = _root / "data" / "callcenter_queue_data.csv"
 if not _data_path.exists():
     _data_path = _root.parent / "data" / "callcenter_queue_data.csv"
 
