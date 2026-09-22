@@ -110,21 +110,13 @@ with st.sidebar:
         st.warning("⚠️ queue_engine.py not found\nPlace it in same folder.")
 
 # ── LOAD DATA ─────────────────────────────────────────────────
-#import pathlib
-#_root = pathlib.Path(__file__).parent
-# Try both locations:
-#_data_path = _root / "data" / "bank_queue_data.csv"
-#if not _data_path.exists():
-#   _data_path = _root.parent / "data" / "bank_queue_data.csv"
-#------------------------------------------------------------------------
-new = f'''# ── Path works for pages/ subfolder AND root deployment ──
-import pathlib as _pl
-_file_dir = _pl.Path(__file__).parent
-# If running from pages/ subfolder → go up one level to find data/
-_data_path = str(_file_dir.parent / "data" / "{csv_file}")
-if not os.path.exists(_data_path):
-    # Fallback: same directory
-    _data_path = str(_file_dir / "data" / "{csv_file}")'''
+import pathlib
+_root = pathlib.Path(__file__).parent
+ Try both locations:
+_data_path = _root / "data" / "bank_queue_data.csv"
+if not _data_path.exists():
+   _data_path = _root.parent / "data" / "bank_queue_data.csv"
+#-----------------------------------------------------------------------
 #------------------------------------------------------------------------
 
 @st.cache_data
@@ -520,7 +512,7 @@ with tabs[4]:
     st.markdown("---")
     sec("📊 Full Capacity Planning Table")
     display_df = cap_df.copy()
-    st.dataframe(display_df.style.applymap(
+    st.dataframe(display_df.style.map(
         lambda v: "background-color:#e8f5e9" if v == S_use else "",
         subset=["Tellers"]
     ), use_container_width=True)
