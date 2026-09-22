@@ -114,16 +114,8 @@ with st.sidebar:
         st.warning("⚠️ queue_engine.py not found\nPlace it in same folder.")
 
 # ── LOAD DATA ─────────────────────────────────────────────────
-#_data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-#                          "data", "bank_queue_data.csv")
-new = f'''# ── Path works for pages/ subfolder AND root deployment ──
-import pathlib as _pl
-_file_dir = _pl.Path(__file__).parent
-# If running from pages/ subfolder → go up one level to find data/
-_data_path = str(_file_dir.parent / "data" / "{csv_file}")
-if not os.path.exists(_data_path):
-    # Fallback: same directory
-    _data_path = str(_file_dir / "data" / "{csv_file}")'''
+_data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "data", "bank_queue_data.csv")
 
 @st.cache_data
 def load_data(file_bytes=None):
