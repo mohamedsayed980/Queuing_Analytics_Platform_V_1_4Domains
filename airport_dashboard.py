@@ -108,27 +108,53 @@ with st.sidebar:
     if not ENGINE_OK:
         st.warning("⚠️ queue_engine.py not found")
 
+============================================================
+=== AIRPORT TEMPLATE ===
+============================================================
 # ── LOAD DATA ─────────────────────────────────────────────────
-import os
-import pathlib as _pl
-#-----------------------------------------------------------------------------------
-#====================================================================================
-_data_path  = str(_pl.Path(__file__).parent.parent)
-_part1 = _data_path / "data" / "airport_queue_data_part1.csv"
-_part2 = _data_path / "data" / "airport_queue_data_part2.csv"
-_part3 = _data_path / "data" / "airport_queue_data_part3.csv"
-_part3 = _data_path / "data" / "airport_queue_data_part4.csv"
-_full  = _data_path / "data" / "airport_queue_data.csv"
-#---------------------------------------------------------------------------------------
-#_data_path = str(_pl.Path(__file__).parent.parent / "data" / "airport_queue_data.csv")
-#if not os.path.exists(_data_path):
-#    _data_path = str(_pl.Path(__file__).parent / "data" / "airport_queue_data.csv")
-##------------------------------------------------------------------##
-# split datafile into parts <25MB as done in P2:
-#_root  = pathlib.Path(__file__).parent.parent
-#_part1 = _root / "data" / "olist_full_clean_part1.csv"
-#_part2 = _root / "data" / "olist_full_clean_part2.csv"
-#_full  = _root / "data" / "olist_full_clean.csv"
+import os, pathlib as _pl, pandas as pd
+
+# Root = one level up from pages/ folder
+_root = _pl.Path(__file__).parent.parent
+# Fallback if running from root directly  
+if not (_root / "data").exists():
+    _root = _pl.Path(__file__).parent
+
+# Airport data split into 4 parts (<25MB each)
+_full  = _root / "data" / "airport_queue_data.csv"
+_part1 = _root / "data" / "airport_queue_data_part1.csv"
+_part2 = _root / "data" / "airport_queue_data_part2.csv"
+_part3 = _root / "data" / "airport_queue_data_part3.csv"
+_part4 = _root / "data" / "airport_queue_data_part4.csv"
+
+@st.cache_data
+def load_data(file_bytes=None):
+    import io
+    if file_bytes is not None:
+        return pd.read_csv(io.BytesIO(file_bytes))
+    if _full.exists():
+        df = pd.read_csv(_full)
+    elif _part1.exists() and _part2.exists():
+        parts = [_part1, _part2]
+        if _part3.exists(): parts.append(_part3)
+        if _part4.exists(): parts.append(_part4)
+        df = pd.concat([pd.read_csv(p) for p in parts],
+                       ignore_index=True)
+    else:
+        return pd.DataFrame()
+    df.columns = df.columns.str.strip()
+    return df
+
+if _up is not None:
+    df = load_data(file_bytes=_up.read())
+else:
+    df = load_data()
+
+if df is None or df.empty:
+    st.error("❌ No data found. Upload airport data files or place in data/ folder.")
+    st.info("Run airport_generate_data.py in Jupyter first.")
+    st.stop()
+
 ##------------------------------------------------------------------##
 @st.cache_data
 def load_data(file_bytes=None):
