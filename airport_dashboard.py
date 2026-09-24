@@ -113,12 +113,12 @@ import os
 import pathlib as _pl
 #-----------------------------------------------------------------------------------
 #====================================================================================
-_root  = str(_pl.Path(__file__).parent.parent)
-_part1 = _root / "data" / "airport_queue_data_part1.csv"
-_part2 = _root / "data" / "airport_queue_data_part2.csv"
-_part3 = _root / "data" / "airport_queue_data_part3.csv"
-_part3 = _root / "data" / "airport_queue_data_part4.csv"
-_full  = _root / "data" / "airport_queue_data.csv"
+_data_path  = str(_pl.Path(__file__).parent.parent)
+_part1 = _data_path / "data" / "airport_queue_data_part1.csv"
+_part2 = _data_path / "data" / "airport_queue_data_part2.csv"
+_part3 = _data_path / "data" / "airport_queue_data_part3.csv"
+_part3 = _data_path / "data" / "airport_queue_data_part4.csv"
+_full  = _data_path / "data" / "airport_queue_data.csv"
 #---------------------------------------------------------------------------------------
 _data_path = str(_pl.Path(__file__).parent.parent / "data" / "airport_queue_data.csv")
 if not os.path.exists(_data_path):
