@@ -114,9 +114,20 @@ with st.sidebar:
         st.warning("⚠️ queue_engine.py not found\nPlace it in same folder.")
 
 # ── LOAD DATA ─────────────────────────────────────────────────
-_data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                          "data", "bank_queue_data.csv")
-
+# _data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),   # old path
+#                          "data", "bank_queue_data.csv")
+#----------------------------------------------------------------
+# ── LOAD DATA ─────────────────────────────────────────────────# New path
+# Path fix: __file__ is in pages/ → go up one level to find data/
+import pathlib as _pl
+_root_dir = _pl.Path(__file__).parent  # pages/
+# pages/Bank.py → parent = repo root
+# but bank_dashboard.py is in root → parent = root too
+# Try both:
+_data_path = str(_pl.Path(__file__).parent.parent / "data" / "bank_queue_data.csv")
+if not os.path.exists(_data_path):
+    _data_path = str(_pl.Path(__file__).parent / "data" / "bank_queue_data.csv")
+#----------------------------------------------------------------
 @st.cache_data
 def load_data(file_bytes=None):
     import io
