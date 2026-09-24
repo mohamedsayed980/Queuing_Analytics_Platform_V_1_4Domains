@@ -109,8 +109,11 @@ with st.sidebar:
         st.warning("⚠️ queue_engine.py not found")
 
 # ── LOAD DATA ─────────────────────────────────────────────────
-_data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                          "data", "airport_queue_data.csv")
+import os
+import pathlib as _pl
+_data_path = str(_pl.Path(__file__).parent.parent / "data" / "airport_queue_data.csv")
+if not os.path.exists(_data_path):
+    _data_path = str(_pl.Path(__file__).parent / "data" / "airport_queue_data.csv")
 
 @st.cache_data
 def load_data(file_bytes=None):
