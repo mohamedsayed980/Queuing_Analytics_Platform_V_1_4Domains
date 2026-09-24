@@ -24,7 +24,7 @@ plotly>=5.15.0
 
 # ── Export — Reports ─────────────────────────────────────────────────────────
 fpdf2>=2.7.0
-python-docx
+python-docx>=0.8.11
 reportlab
 # ── System Monitoring ────────────────────────────────────────────────────────
 psutil>=5.9.0
