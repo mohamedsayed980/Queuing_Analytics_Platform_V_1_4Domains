@@ -111,11 +111,25 @@ with st.sidebar:
 # ── LOAD DATA ─────────────────────────────────────────────────
 import os
 import pathlib as _pl
+#-----------------------------------------------------------------------------------
 _data_path = str(_pl.Path(__file__).parent.parent / "data" / "airport_queue_data.csv")
+
 if not os.path.exists(_data_path):
     _data_path = str(_pl.Path(__file__).parent / "data" / "airport_queue_data.csv")
+#====================================================================================
+_root  = str(_pl.Path(__file__).parent.parent)
+_part1 = _root / "data" / "airport_queue_data_part1.csv"
+_part2 = _root / "data" / "airport_queue_data_part2.csv"
+_part2 = _root / "data" / "airport_queue_data_part3.csv"
+_full  = _root / "data" / "airport_queue_data.csv"
 
-#--------------------------------------------------------------------------------
+##------------------------------------------------------------------##
+# split datafile into parts <25MB as done in P2:
+#_root  = pathlib.Path(__file__).parent.parent
+#_part1 = _root / "data" / "olist_full_clean_part1.csv"
+#_part2 = _root / "data" / "olist_full_clean_part2.csv"
+#_full  = _root / "data" / "olist_full_clean.csv"
+##------------------------------------------------------------------##
 @st.cache_data
 def load_data(file_bytes=None):
     import io
