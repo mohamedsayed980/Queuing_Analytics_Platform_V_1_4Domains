@@ -108,25 +108,54 @@ with st.sidebar:
     if not ENGINE_OK:
         st.warning("⚠️ queue_engine.py not found")
 
+============================================================
+=== AIRPORT TEMPLATE ===
+============================================================
 # ── LOAD DATA ─────────────────────────────────────────────────
-_data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                          "data", "airport_queue_data.csv")
+import os, pathlib as _pl, pandas as pd
+
+# Root = one level up from pages/ folder
+_root = _pl.Path(__file__).parent.parent
+# Fallback if running from root directly  
+if not (_root / "data").exists():
+    _root = _pl.Path(__file__).parent
+
+# Airport data split into 4 parts (<25MB each)
+_full  = _root / "data" / "airport_queue_data.csv"
+_part1 = _root / "data" / "airport_queue_data_part1.csv"
+_part2 = _root / "data" / "airport_queue_data_part2.csv"
+_part3 = _root / "data" / "airport_queue_data_part3.csv"
+_part4 = _root / "data" / "airport_queue_data_part4.csv"
 
 @st.cache_data
 def load_data(file_bytes=None):
     import io
-    src = io.BytesIO(file_bytes) if file_bytes else _data_path
-    if file_bytes is None and not os.path.exists(_data_path):
+    if file_bytes is not None:
+        return pd.read_csv(io.BytesIO(file_bytes))
+    if _full.exists():
+        df = pd.read_csv(_full)
+    elif _part1.exists() and _part2.exists():
+        parts = [_part1, _part2]
+        if _part3.exists(): parts.append(_part3)
+        if _part4.exists(): parts.append(_part4)
+        df = pd.concat([pd.read_csv(p) for p in parts],
+                       ignore_index=True)
+    else:
         return pd.DataFrame()
-    df = pd.read_csv(src)
     df.columns = df.columns.str.strip()
     return df
 
-df = load_data(file_bytes=_up.read() if _up else None)
-if df.empty:
-    st.error("❌ No data. Run airport_generate_data.py → copy to data/ folder.")
+if _up is not None:
+    df = load_data(file_bytes=_up.read())
+else:
+    df = load_data()
+
+if df is None or df.empty:
+    st.error("❌ No data found. Upload airport data files or place in data/ folder.")
+    st.info("Run airport_generate_data.py in Jupyter first.")
     st.stop()
 
+#-----------------------------------------------------------------------------------
 lam_use = lam_override
 mu_use  = mu_override
 S_use   = S_override
