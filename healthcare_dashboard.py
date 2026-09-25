@@ -116,8 +116,8 @@ _data_path = _root / "data" / "healthcare_queue_data.csv"
 def load_data(file_bytes=None):
     import io
     if file_bytes is not None:
-        return pd.read_csv(io.BytesIO(file_bytes))
-    if _data_path.exists():
+        df = pd.read_csv(io.BytesIO(file_bytes))
+    elif os.path.exists(_data_path):
         df = pd.read_csv(_data_path)
     else:
         return pd.DataFrame()
@@ -126,20 +126,29 @@ def load_data(file_bytes=None):
 
 if _up is not None:
     df = load_data(file_bytes=_up.read())
-else:
+elif os.path.exists(_data_path):
     df = load_data()
-
-if df is None or df.empty:
-    st.error("❌ No data. Run healthcare_generate_data.py → copy to data/ folder.")
+else:
+    st.error("❌ No data found. Upload bank_queue_data.csv or place in data/ folder.")
+    st.info("Run bank_generate_data.py in Jupyter first.")
     st.stop()
-#-------------------------------------------------------------
+
+if df.empty:
+    st.error("❌ Dataset is empty."); st.stop()
+
+# ── DERIVE KEY METRICS FROM DATA ─────────────────────────────
+# Inter-arrival times
 df_sorted = df.sort_values("arrival_time").reset_index(drop=True)
 df_sorted["iat"] = df_sorted["arrival_time"].diff().fillna(
     df_sorted["arrival_time"].iloc[0])
 
-n_patients   = len(df_sorted)
-total_hrs    = df_sorted["arrival_time"].max() - df_sorted["arrival_time"].min()
+# Empirical rates
+total_hrs   = df_sorted["arrival_time"].max() - df_sorted["arrival_time"].min()
+n_customers = len(df_sorted)
+lam_emp     = n_customers / total_hrs if total_hrs > 0 else lam_override
+mu_emp      = 1 / df_sorted["service_time_hr"].mean() if "service_time_hr" in df_sorted.columns else mu_override
 
+# Use overrides if user changed them
 lam_use = lam_override
 mu_use  = mu_override
 S_use   = S_override
