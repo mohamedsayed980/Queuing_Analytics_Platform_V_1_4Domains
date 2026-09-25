@@ -156,21 +156,6 @@ if df is None or df.empty:
     st.stop()
 
 ##------------------------------------------------------------------##
-@st.cache_data
-def load_data(file_bytes=None):
-    import io
-    src = io.BytesIO(file_bytes) if file_bytes else _data_path
-    if file_bytes is None and not os.path.exists(_data_path):
-        return pd.DataFrame()
-    df = pd.read_csv(src)
-    df.columns = df.columns.str.strip()
-    return df
-
-df = load_data(file_bytes=_up.read() if _up else None)
-if df.empty:
-    st.error("❌ No data. Run airport_generate_data.py → copy to data/ folder.")
-    st.stop()
-
 lam_use = lam_override
 mu_use  = mu_override
 S_use   = S_override
