@@ -108,7 +108,6 @@ with st.sidebar:
 
 # ── LOAD DATA ─────────────────────────────────────────────────
 import os, pathlib as _pl, pandas as pd
-
 _data_path = str(_pl.Path(__file__).parent.parent / "data" / "callcenter_queue_data.csv")
 if not os.path.exists(_data_path):
     _data_path = str(_pl.Path(__file__).parent / "data" / "callcenter_queue_data.csv")
