@@ -107,29 +107,35 @@ with st.sidebar:
         st.warning("⚠️ queue_engine.py not found\nPlace it in same folder.")
 
 # ── LOAD DATA ─────────────────────────────────────────────────
-import os
-import pathlib as _pl
-_data_path = str(_pl.Path(__file__).parent.parent / "data" / "callcenter_queue_data.csv")
-if not os.path.exists(_data_path):
-    _data_path = str(_pl.Path(__file__).parent / "data" / "callcenter_queue_data.csv")
-#-------------------------------------------------------------------
+import os, pathlib as _pl, pandas as pd
+
+_root = _pl.Path(__file__).parent.parent
+if not (_root / "data").exists():
+    _root = _pl.Path(__file__).parent
+
+_data_path = _root / "data" / "callcenter_queue_data.csv"
+
 @st.cache_data
 def load_data(file_bytes=None):
     import io
     if file_bytes is not None:
-        df = pd.read_csv(io.BytesIO(file_bytes))
-    elif os.path.exists(_data_path):
+        return pd.read_csv(io.BytesIO(file_bytes))
+    if _data_path.exists():
         df = pd.read_csv(_data_path)
     else:
         return pd.DataFrame()
     df.columns = df.columns.str.strip()
     return df
 
-df = load_data(file_bytes=_up.read() if _up else None)
+if _up is not None:
+    df = load_data(file_bytes=_up.read())
+else:
+    df = load_data()
 
-if df.empty:
+if df is None or df.empty:
     st.error("❌ No data. Run callcenter_generate_data.py → copy to data/ folder.")
     st.stop()
+#---------------------------------------------------------------------------
 
 lam_use = lam_override
 mu_use  = mu_override
