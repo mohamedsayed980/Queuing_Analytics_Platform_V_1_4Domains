@@ -136,7 +136,19 @@ if df is None or df.empty:
     st.error("❌ No data. Run callcenter_generate_data.py → copy to data/ folder.")
     st.stop()
 #---------------------------------------------------------------------------
+# ── DERIVE KEY METRICS FROM DATA ─────────────────────────────
+# Inter-arrival times
+df_sorted = df.sort_values("arrival_time").reset_index(drop=True)
+df_sorted["iat"] = df_sorted["arrival_time"].diff().fillna(
+    df_sorted["arrival_time"].iloc[0])
 
+# Empirical rates
+total_hrs   = df_sorted["arrival_time"].max() - df_sorted["arrival_time"].min()
+n_customers = len(df_sorted)
+lam_emp     = n_customers / total_hrs if total_hrs > 0 else lam_override
+mu_emp      = 1 / df_sorted["service_time_hr"].mean() if "service_time_hr" in df_sorted.columns else mu_override
+
+# Use overrides if user changed them
 lam_use = lam_override
 mu_use  = mu_override
 S_use   = S_override
