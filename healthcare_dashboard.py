@@ -126,7 +126,7 @@ if _up is not None:
 elif os.path.exists(_data_path):
     df = load_data()
 else:
-    st.error("❌ No data found. Upload bank_queue_data.csv or place in data/ folder.")
+    st.error("❌ No data found. Upload healthcare_queue_data.csv or place in data/ folder.")
     st.info("Run bank_generate_data.py in Jupyter first.")
     st.stop()
 
