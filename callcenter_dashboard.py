@@ -121,8 +121,8 @@ if os.path.exists(_data_path):
   df = pd.read_csv(_data_path)
 else:
   return pd.DataFrame()
-  df.columns = df.columns.str.strip()
-  return df
+df.columns = df.columns.str.strip()
+return df
 
 if _up is not None:
     df = load_data(file_bytes=_up.read())
