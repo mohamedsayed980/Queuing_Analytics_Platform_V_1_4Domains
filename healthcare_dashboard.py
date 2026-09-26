@@ -134,8 +134,7 @@ def load_data(file_bytes=None):
 # ── DERIVE KEY METRICS FROM DATA ─────────────────────────────
 # Inter-arrival times
 df_sorted = df.sort_values("arrival_time").reset_index(drop=True)
-df_sorted["iat"] = df_sorted["arrival_time"].diff().fillna(
-    df_sorted["arrival_time"].iloc[0])
+df_sorted["iat"] = df_sorted["arrival_time"].diff().fillna(df_sorted["arrival_time"].iloc[0])
 
 # Empirical rates
 total_hrs   = df_sorted["arrival_time"].max() - df_sorted["arrival_time"].min()
