@@ -117,7 +117,7 @@ def load_data(file_bytes=None):
     import io
     if file_bytes is not None:
         return pd.read_csv(io.BytesIO(file_bytes))
-    if _data_path.exists():
+    if os.path.exists():
         df = pd.read_csv(_data_path)
     else:
         return pd.DataFrame()
