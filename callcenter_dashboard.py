@@ -115,14 +115,14 @@ if not os.path.exists(_data_path):
 @st.cache_data
 def load_data(file_bytes=None):
     import io
-    if file_bytes is not None:
-        return pd.read_csv(io.BytesIO(file_bytes))
-    if os.path.exists():
-        df = pd.read_csv(_data_path)
-    else:
-        return pd.DataFrame()
-    df.columns = df.columns.str.strip()
-    return df
+    119:     if file_bytes is not None:
+120:         return pd.read_csv(io.BytesIO(file_bytes))
+121:     if os.path.exists(_data_path):
+122:         df = pd.read_csv(_data_path)
+123:     else:
+124:         return pd.DataFrame()
+125:     df.columns = df.columns.str.strip()
+126:     return df
 
 if _up is not None:
     df = load_data(file_bytes=_up.read())
