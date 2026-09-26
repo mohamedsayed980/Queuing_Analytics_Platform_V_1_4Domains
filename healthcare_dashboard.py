@@ -121,17 +121,15 @@ def load_data(file_bytes=None):
     df.columns = df.columns.str.strip()
     return df
 
-if _up is not None:
-    df = load_data(file_bytes=_up.read())
-elif os.path.exists(_data_path):
-    df = load_data()
-else:
-    st.error("❌ No data found. Upload healthcare_queue_data.csv or place in data/ folder.")
-    st.info("Run bank_generate_data.py in Jupyter first.")
-    st.stop()
-
-if df.empty:
-    st.error("❌ Dataset is empty."); st.stop()
+125: if _up is not None:
+126:     df = load_data(file_bytes=_up.read())
+127: else:
+128:     df = load_data()
+129: 
+130: if df is None or df.empty:
+131:     st.error("❌ No data found. Upload healthcare_queue_data.csv or place in data/ folder.")
+132:     st.info("Run healthcare_generate_data.py in Jupyter first.")
+133:     st.stop()
 
 # ── DERIVE KEY METRICS FROM DATA ─────────────────────────────
 # Inter-arrival times
