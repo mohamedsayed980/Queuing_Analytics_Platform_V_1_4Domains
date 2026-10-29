@@ -112,9 +112,9 @@ with st.sidebar:
 # ── LOAD DATA ─────────────────────────────────────────────────
 import os
 import pathlib as _pl
-_data_path = str(_pl.Path(__file__).parent.parent / "data" / "bank_queue_data.csv")
+_data_path = str(_pl.Path(__file__).parent.parent/"data"/"bank_queue_data.csv")
 if not os.path.exists(_data_path):
-    _data_path = str(_pl.Path(__file__).parent / "data" / "bank_queue_data.csv")
+    _data_path = str(_pl.Path(__file__).parent/"data"/"bank_queue_data.csv")
 #-----------------------------------------------------------------------
 @st.cache_data
 def load_data(file_bytes=None):
