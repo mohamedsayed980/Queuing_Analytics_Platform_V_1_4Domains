@@ -208,7 +208,7 @@ def explain_missing(key):
     
 
 # Subsets 
-answered = df[df["abandoned"]==0].copy()
+#answered = df[df["abandoned"]==0].copy()
 sla_pct  = df["sla_met"].mean()*100 if "sla_met" in df.columns else 0
 abn_pct  = df["abandoned"].mean()*100 if "abandoned" in df.columns else 0
 n_calls  = len(df)
