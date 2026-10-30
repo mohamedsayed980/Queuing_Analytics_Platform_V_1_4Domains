@@ -153,7 +153,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # ── FUTURE TEMPLATES ─────────────────────────────────────────
 #st.markdown("### 🔜 Coming Soon")
-st.markdown("### 🔜 ...")
+st.markdown("...")
 f1, f2, f3, f4 = st.columns(4)
 for col, (icon, name, desc, params) in zip([f1,f2,f3,f4],[
     ("✈️","Airport Security",
