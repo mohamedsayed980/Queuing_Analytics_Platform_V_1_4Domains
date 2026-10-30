@@ -1,77 +1,125 @@
-"""Find and load domain CSV files from the repository's data/ folder."""
+"""Shared CSV loader for all Streamlit domain pages.
+
+Place this file in the repository root, beside Home.py. CSV files belong in
+<data root>/data/ and should include the domain key in the filename, e.g.
+healthcare_queue.csv or call_center_part_01.csv.
+"""
 from __future__ import annotations
 
 import io
 import re
 from pathlib import Path
+from typing import BinaryIO, Iterable
 
 import pandas as pd
 import streamlit as st
 
-DATA_DIR = Path(__file__).resolve().parent / "data"
+REPO_ROOT = Path(__file__).resolve().parent
+DATA_DIR = REPO_ROOT / "data"
 
 
-def _norm(value: str) -> str:
-    """Normalize a filename/key so spaces, underscores, and hyphens are ignored."""
-    return re.sub(r"[\s_-]+", "", value.casefold())
+def _normalize(value: str) -> str:
+    """Case-insensitive filename matching; ignore spaces, '_' and '-'."""
+    return re.sub(r"[\s_-]+", "", str(value).casefold())
 
 
-def find_files(key: str) -> list[Path]:
-    """Return CSVs in data/ whose filename contains the normalized key."""
-    if not DATA_DIR.is_dir():
+def find_domain_files(domain: str, data_dir: Path | str | None = None) -> list[Path]:
+    """Find CSVs whose filename contains the normalized domain key."""
+    folder = Path(data_dir) if data_dir is not None else DATA_DIR
+    if not folder.is_dir():
         return []
-    needle = _norm(key)
+
+    key = _normalize(domain)
     return sorted(
-        (p for p in DATA_DIR.iterdir()
-         if p.is_file() and p.suffix.casefold() == ".csv" and needle in _norm(p.name)),
-        key=lambda p: p.name.casefold(),
+        (
+            path for path in folder.iterdir()
+            if path.is_file()
+            and path.suffix.casefold() == ".csv"
+            and key in _normalize(path.stem)
+        ),
+        key=lambda path: path.name.casefold(),
     )
 
 
-def _pick_files(key: str) -> list[Path]:
-    files = find_files(key)
-    full_files = [p for p in files if "part" not in p.stem.casefold()]
-    if full_files:
-        return [min(full_files, key=lambda p: len(p.name))]
-    return [p for p in files if "part" in p.stem.casefold()]
+def _select_files(files: list[Path]) -> list[Path]:
+    """Prefer one complete CSV; otherwise combine matching part CSVs."""
+    complete = [path for path in files if "part" not in _normalize(path.stem)]
+    if complete:
+        # Prefer the shortest matching filename to avoid choosing backup copies.
+        return [min(complete, key=lambda path: (len(path.name), path.name.casefold()))]
+    return [path for path in files if "part" in _normalize(path.stem)]
+
+
+def _read_csv_bytes(contents: bytes) -> pd.DataFrame:
+    """Read UTF-8 CSVs, falling back to Latin-1 for older exports."""
+    try:
+        return pd.read_csv(io.BytesIO(contents), encoding="utf-8-sig")
+    except UnicodeDecodeError:
+        return pd.read_csv(io.BytesIO(contents), encoding="latin-1")
 
 
 @st.cache_data(show_spinner=False)
-def _read_files(paths: tuple[str, ...], _mtimes: tuple[float, ...]) -> pd.DataFrame:
+def _read_paths(paths: tuple[str, ...], file_mtimes: tuple[float, ...]) -> pd.DataFrame:
     frames = []
-    for path in paths:
+    for filename in paths:
+        path = Path(filename)
         try:
             frame = pd.read_csv(path, encoding="utf-8-sig")
         except UnicodeDecodeError:
             frame = pd.read_csv(path, encoding="latin-1")
         frames.append(frame)
-    result = pd.concat(frames, ignore_index=True) if len(frames) > 1 else frames[0]
-    result.columns = result.columns.astype(str).str.strip()
-    return result
+
+    data = pd.concat(frames, ignore_index=True) if len(frames) > 1 else frames[0]
+    data.columns = data.columns.astype(str).str.strip()
+    return data
 
 
-def load_domain_data(key: str, uploaded=None) -> pd.DataFrame | None:
-    """Load an uploaded CSV or a matching CSV from data/. Return None if absent."""
+def load_domain_data(
+    domain: str,
+    uploaded: BinaryIO | bytes | None = None,
+    *,
+    data_dir: Path | str | None = None,
+    required_columns: Iterable[str] | None = None,
+) -> pd.DataFrame | None:
+    """Load an uploaded CSV or the matching file(s) from ``data/``.
+
+    Returns None only when no matching file exists. ``required_columns`` is
+    optional because column schemas differ across domains; if supplied, a
+    ValueError describes any missing column names.
+    """
     if uploaded is not None:
-        contents = uploaded.getvalue() if hasattr(uploaded, "getvalue") else uploaded
-        result = pd.read_csv(io.BytesIO(contents), encoding="utf-8-sig")
-        result.columns = result.columns.astype(str).str.strip()
-        return result
+        contents = uploaded if isinstance(uploaded, bytes) else uploaded.getvalue()
+        data = _read_csv_bytes(contents)
+        data.columns = data.columns.astype(str).str.strip()
+    else:
+        files = _select_files(find_domain_files(domain, data_dir))
+        if not files:
+            return None
+        data = _read_paths(
+            tuple(str(path) for path in files),
+            tuple(path.stat().st_mtime for path in files),
+        )
 
-    files = _pick_files(key)
-    if not files:
-        return None
-    return _read_files(
-        tuple(str(path) for path in files),
-        tuple(path.stat().st_mtime for path in files),
+    if required_columns is not None:
+        missing = sorted(set(required_columns) - set(data.columns))
+        if missing:
+            raise ValueError(
+                f"The {domain!r} CSV is missing required columns: {', '.join(missing)}. "
+                f"Columns found: {', '.join(data.columns)}"
+            )
+    return data
+
+
+def explain_missing(domain: str, data_dir: Path | str | None = None) -> None:
+    """Show actionable Streamlit diagnostics when no matching CSV is found."""
+    folder = Path(data_dir) if data_dir is not None else DATA_DIR
+    st.error(f"No CSV file matched the domain key {domain!r}.")
+    st.code(f"Searched folder: {folder}\nFolder exists: {folder.is_dir()}")
+    if folder.is_dir():
+        names = sorted(path.name for path in folder.iterdir())
+        st.code("Files found: " + (", ".join(names) if names else "(none)"))
+    st.info(
+        f"Upload a CSV in the sidebar or place one in {folder} with "
+        f"{domain!r} in its filename."
     )
 
-
-def explain_missing(key: str) -> None:
-    """Display where the loader searched and ask for an upload if no CSV matched."""
-    st.error(f"No usable CSV found for '{key}'.")
-    st.code(f"Searched folder: {DATA_DIR}\nFolder exists: {DATA_DIR.is_dir()}")
-    if DATA_DIR.is_dir():
-        names = sorted(p.name for p in DATA_DIR.iterdir())
-        st.code("Files found: " + (", ".join(names) if names else "(none)"))
-    st.info("Upload the CSV in the sidebar, or place a matching CSV in the data/ folder.")
